@@ -11,6 +11,8 @@ import Cookies from "js-cookie";
 import Fields from "./components/fields/fields";
 import FieldView from "./components/fields/fieldView";
 import Crops from "./components/crops/crops";
+import Projects from "./components/projects/projects";
+import CreateProject from "./components/projects/createProject";
 
 function App() {
   const isLogged = () => {
@@ -30,6 +32,7 @@ function App() {
             <Route path='fields' element={<Fields/>}/>
             <Route path='fields/view' element={<FieldView/>}/>
             <Route path='crops' element={<Crops/>}/>
+            <Route path='projects' element={<Projects/>}/>
 
         </Route>
       </Routes>

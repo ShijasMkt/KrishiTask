@@ -33,16 +33,16 @@ export default function Fields() {
 				<div className="row row-cols-3">
                     {farms.length>0?(
                         farms.map((farm,index)=>(
-                            <div className="col">
+                            <div className="col" key={index}>
                             <div className="farm-card" onClick={()=>toFieldView(farm)}>
                                 <i className="fa-solid fa-tractor tractor"></i>
                                 <h5>{farm.name}</h5>
                                 <div className="card-body">
                                     <span>
-                                        Owner Name : <spa>{farm.owner_name}</spa>
+                                        Owner Name : <span>{farm.owner_name}</span>
                                     </span>
                                     <span>
-                                        Place : <spa>{farm.location}</spa>
+                                        Place : <span>{farm.location}</span>
                                     </span>
                                 </div>
                                 <i className="fa-solid fa-turn-down turn-down"></i>

@@ -30,7 +30,7 @@ export default function Navbar() {
             case '/crops/':
                 setPage('Crops')
                 break;            
-            case '/projects/view':
+            case '/projects/':
                 setPage('Projects')
                 break;
             default:

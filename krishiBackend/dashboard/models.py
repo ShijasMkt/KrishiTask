@@ -46,4 +46,23 @@ class Field(models.Model):
     is_irrigated = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Project(models.Model):
+    STATUS_CHOICES = [
+        ('not_started', 'Not Started'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('on_hold', 'On Hold'),
+        ('cancelled', 'Cancelled'),
+    ]
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    deadline = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
+    deleted=models.BooleanField(default=False)
+    
+    farm = models.ForeignKey(Farm, on_delete=models.SET_NULL, null=True, blank=True, related_name='projects')
+    
+    created_at = models.DateTimeField(auto_now_add=True)   
     

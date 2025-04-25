@@ -17,3 +17,9 @@ class FieldSerializer(serializers.ModelSerializer):
     class Meta:
         model=Field
         fields = '__all__'        
+
+class ProjectSerializer(serializers.ModelSerializer):
+    assigned_farm=serializers.CharField(source='farm.name',read_only=True)
+    class Meta:
+        model=Project
+        fields = '__all__'        

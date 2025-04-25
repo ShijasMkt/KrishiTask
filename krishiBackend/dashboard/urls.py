@@ -15,5 +15,11 @@ urlpatterns = [
     path('api/fetch_fields/',fetch_fields),
     path('api/edit_field/',edit_field),
     path('api/delete_field/',delete_field),
+    path('api/fetch_totals/',fetch_totals),
+    path('api/create_project/',create_project),
+    path('api/fetch_projects/',fetch_projects),
+    path('api/update_project_status/<int:pk>/', update_project_status),
+    path('api/delete_project/',delete_project),
+
 
 ]

@@ -11,7 +11,7 @@ export default function Sidebar() {
         { label: 'Dashboard', icon: 'fa-solid fa-house', path: '/' },
         { 
             label:'Insights', 
-            icon: 'fa-solid fa-tractor', 
+            icon: 'fa-solid fa-wave-square', 
             path: '/farms/view', 
             subItems: [
                 { label: 'Farms', path: '/farms/view' },
@@ -22,7 +22,7 @@ export default function Sidebar() {
         {
             label: 'Projects',
             icon: 'fa-solid fa-diagram-project',
-            path:'/projects/view',
+            path:'/projects/',
             
         },
     ];
