@@ -49,7 +49,6 @@ const handleChange = (e) => {
       farm_field: farmField
     };
 
-    console.log(projectData)
     const body = JSON.stringify({ projectData });
             const res = await fetch("http://127.0.0.1:8000/api/create_project/", {
                 method: "POST",

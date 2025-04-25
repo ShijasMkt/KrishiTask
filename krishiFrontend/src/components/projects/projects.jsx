@@ -24,7 +24,6 @@ export default function Projects() {
 		const res = await fetch("http://127.0.0.1:8000/api/fetch_projects/");
 		if (res.ok) {
 			const data = await res.json();
-			console.log(data);
 			setProjects(data);
 		}
 	};

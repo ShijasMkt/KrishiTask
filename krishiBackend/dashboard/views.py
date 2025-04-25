@@ -9,6 +9,7 @@ from dashboard.models import *
 from django.contrib.auth.hashers import check_password
 from .tools.serializer import FarmSerializer,CropSerializer,FieldSerializer,ProjectSerializer
 from decimal import Decimal
+from django.db.models import Count
 # Create your views here.
 
 def get_tokens_for_user(user):
@@ -345,3 +346,24 @@ def delete_project(request):
             project.save()
             return Response(status=status.HTTP_200_OK)
     
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def fetch_project_status(request):
+    completed = Project.objects.filter(status='completed', deleted=False).count()
+    not_completed = Project.objects.exclude(status='completed').filter(deleted=False).count()
+
+    return JsonResponse({
+        "completed": completed,
+        "not_completed": not_completed
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def fetch_projects_per_farm(request):
+    data = (
+        Farm.objects.filter(deleted=False)
+        .annotate(project_count=Count("projects", filter=models.Q(projects__deleted=False)))
+        .values("name", "project_count")
+        .order_by("-project_count")
+    )
+    return JsonResponse(list(data), safe=False)

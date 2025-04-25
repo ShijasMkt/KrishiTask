@@ -20,6 +20,8 @@ urlpatterns = [
     path('api/fetch_projects/',fetch_projects),
     path('api/update_project_status/<int:pk>/', update_project_status),
     path('api/delete_project/',delete_project),
+    path('api/fetch_project_status/',fetch_project_status),
+    path('api/fetch_projects_per_farm/',fetch_projects_per_farm)
 
 
 ]
