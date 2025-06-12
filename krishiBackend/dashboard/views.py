@@ -7,7 +7,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from dashboard.models import *
 from django.contrib.auth.hashers import check_password
-from .tools.serializer import FarmSerializer,CropSerializer,FieldSerializer,ProjectSerializer
+from django.contrib.auth import authenticate
+from .tools.serializer import FarmSerializer,CropSerializer,FieldSerializer,ProjectSerializer,LivestockSerializer
 from decimal import Decimal
 from django.db.models import Count
 # Create your views here.
@@ -20,39 +21,48 @@ def get_tokens_for_user(user):
     }
 
 
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    data = request.data
+    user_name = data.get("uName")
+    user_email = data.get("email")
+    user_password = data.get("password")
+
+    if Users.objects.filter(email=user_email).exists():
+        return Response({"detail": "Email already exists!"}, status=status.HTTP_400_BAD_REQUEST)
+
+    Users.objects.create_user(email=user_email, name=user_name, password=user_password)
+
+    return Response({"detail": "User registered successfully!"}, status=status.HTTP_201_CREATED)
+
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def check_login(request):
-    if request.method=="POST":
-        data=request.data
-        user_name=data.get("uName")
-        raw_password=data.get("password")
+    email=request.data.get('email')
+    password=request.data.get("password")
 
-        try:
-            user_data = Users.objects.get(name=user_name)
-            user_id=user_data.id
-            user_name=user_data.name
-            hashed_password = user_data.password
-            check=check_password(raw_password,hashed_password)
-            if check:
-                tokens = get_tokens_for_user(user_data)
-                return Response({'access': tokens['access'], 'refresh': tokens['refresh']}, status=status.HTTP_200_OK)
-            else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-        except Users.DoesNotExist:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)  
+    user=authenticate(request,email=email,password=password)
+
+    if user:
+        tokens=get_tokens_for_user(user)
+        return Response({'access': tokens['access'], 'refresh': tokens['refresh']})
+    return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    
         
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def create_farm(request):
     data = request.data  
-
     image_data = data.get('image', None)
     if image_data == 'null' or image_data is None or image_data == '':
         image_data = None
     new_farm = Farm(
+        user=request.user,
         name=data['name'],
-        owner_name=data['owner_name'],
         contact_number=data.get('contact_number', ''),
         email=data.get('email', ''),
         location=data['location'],
@@ -64,16 +74,16 @@ def create_farm(request):
     return Response({"message": "Farm created successfully"}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def fetch_farms(request):
     if request.method=="GET":
-        farm_data=Farm.objects.filter(deleted=False)  
+        farm_data=Farm.objects.filter(user=request.user,deleted=False)  
         serialized_data=FarmSerializer(farm_data,many=True)
         return Response(status=status.HTTP_200_OK,data=serialized_data.data)
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def delete_farm(request):
     if request.method=='POST':
         farm_id=request.data.get('farmID') 
@@ -84,30 +94,30 @@ def delete_farm(request):
             return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def edit_farm(request):
     if request.method=='POST':
-        formData = request.data.get('formData')
-        if not formData:
+        data = request.data  
+    
+        if not data:
             return Response({'error': 'No formData provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            farm_id = formData['id']
+            farm_id = data['id']
             selected_farm = Farm.objects.get(id=farm_id)
         except Farm.DoesNotExist:
             return Response({'error': 'Farm not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        image_file = request.FILES.get('image', None)
         
-        selected_farm.name = formData['name']
-        selected_farm.owner_name = formData['owner_name']
-        selected_farm.contact_number = formData.get('contact_number', '')
-        selected_farm.email = formData.get('email', '')
-        selected_farm.location = formData['location']
-        selected_farm.size_in_acres = formData['size_in_acres']
-
+        selected_farm.name = data['name']
+        selected_farm.contact_number = data.get('contact_number', '')
+        selected_farm.email = data.get('email', '')
+        selected_farm.location = data['location']
+        selected_farm.size_in_acres = data['size_in_acres']
+        
+        image_file = request.FILES.get('image')
         if image_file:
-            selected_farm.image = image_file  
+            selected_farm.image = image_file
 
         selected_farm.save()
 
@@ -115,7 +125,7 @@ def edit_farm(request):
 
     
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def add_crop(request):
     data = request.data  
 
@@ -145,35 +155,33 @@ def fetch_crops(request):
     
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def edit_crop(request):
-    if request.method == 'POST':
-        formData = request.data.get('formData')
-        if not formData:
-            return Response({'error': 'No formData provided'}, status=status.HTTP_400_BAD_REQUEST)
+    crop_id = request.data.get('id')
+    if not crop_id:
+        return Response({'error': 'No crop id provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            crop_id = formData['id']
-            selected_crop = Crop.objects.get(id=crop_id)
-        except Crop.DoesNotExist:
-            return Response({'error': 'Crop not found'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        selected_crop = Crop.objects.get(id=crop_id)
+    except Crop.DoesNotExist:
+        return Response({'error': 'Crop not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        image_file = request.FILES.get('image', None)
+    selected_crop.name = request.data.get('name', selected_crop.name)
+    selected_crop.variety = request.data.get('variety', selected_crop.variety)
+    selected_crop.season = request.data.get('season', selected_crop.season)
+    selected_crop.avg_yield_per_acre = request.data.get('avg_yield_per_acre', selected_crop.avg_yield_per_acre)
+    selected_crop.description = request.data.get('description', selected_crop.description)
 
-        selected_crop.name=formData['name']
-        selected_crop.variety=formData.get('variety','')
-        selected_crop.season=formData.get('season', '')
-        selected_crop.avg_yield_per_acre=formData.get('avg_yield_per_acre', 0)
-        selected_crop.description=formData.get('description','')
-        if image_file:
-            selected_crop.image = image_file  
+    image_file = request.FILES.get('image')
+    if image_file:
+        selected_crop.image = image_file
 
-        selected_crop.save()
+    selected_crop.save()
 
-        return Response({'message': 'Farm updated successfully'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Crop updated successfully'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def delete_crop(request):
     if request.method=='POST':
         crop_id=request.data.get('cropID') 
@@ -185,7 +193,7 @@ def delete_crop(request):
         
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def add_field(request):
     formData = request.data.get('formData')
     if not formData:
@@ -215,7 +223,7 @@ def add_field(request):
     return Response({"message": "Field created successfully"}, status=status.HTTP_201_CREATED)    
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def fetch_fields(request):
     if request.method=="POST":
         farm_id=request.data.get('farmID')
@@ -224,7 +232,7 @@ def fetch_fields(request):
         return Response(status=status.HTTP_200_OK,data=serialized_data.data)
     
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def edit_field(request):
     if request.method == 'POST':
         formData = request.data.get('formData')
@@ -256,11 +264,11 @@ def edit_field(request):
 
         selected_field.save()
 
-        return Response({'message': 'Farm updated successfully'}, status=status.HTTP_200_OK)    
+        return Response({'message': 'field updated successfully'}, status=status.HTTP_200_OK)    
     
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def delete_field(request):
     if request.method=='POST':
         field_id=request.data.get('fieldID') 
@@ -269,6 +277,79 @@ def delete_field(request):
             field.delete()
             return Response(status=status.HTTP_200_OK)    
         
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_livestock(request):
+    formData = request.data.get('formData')
+    if not formData:
+        return Response({'error': 'No formData provided'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        farm = Farm.objects.get(id=formData.get('farm'))
+    except Farm.DoesNotExist:
+        return Response({"error": "Farm not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    new_livestock=Livestock(
+        farm=farm,
+        tag=formData.get('tag'),
+        species=formData.get('species'),
+        breed=formData.get('breed',''),
+        gender=formData.get('gender',''),
+        color=formData.get('color',''),
+    )
+
+    new_livestock.save()
+    return Response({"message": "Livestock created successfully"}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetch_livestocks(request):
+    farm_ids = Farm.objects.filter(user=request.user, deleted=False).values_list('id', flat=True)
+    for id in farm_ids:
+        livestock_data=Livestock.objects.select_related('farm').filter(farm_id=id)
+    serialized_data=LivestockSerializer(livestock_data,many=True)
+    return Response(status=status.HTTP_200_OK,data=serialized_data.data)    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def edit_livestock(request):
+    formData = request.data.get('formData')
+    if not formData:
+        return Response({'error': 'No formData provided'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        livestock_id = formData['id']
+        selected_livestock = Livestock.objects.get(id=livestock_id)
+    except Livestock.DoesNotExist:
+        return Response({'error': 'Livestock not found'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        farm = Farm.objects.get(id=formData.get('farm'))
+    except Farm.DoesNotExist:
+        return Response({"error": "Farm not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+    selected_livestock.farm=farm
+    selected_livestock.tag=formData.get('tag')
+    selected_livestock.species=formData.get('species')
+    selected_livestock.breed=formData.get('breed','')
+    selected_livestock.gender=formData.get('gender','')
+    selected_livestock.color=formData.get('color','')
+    
+
+    selected_livestock.save()
+    return Response({"message": "Livestock updated successfully"}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_livestock(request):
+    if request.method=='POST':
+        livestock_id=request.data.get('livestockID') 
+        livestock=Livestock.objects.get(id=livestock_id)
+        if livestock:
+            livestock.delete()
+            return Response(status=status.HTTP_200_OK)  
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND) 
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def fetch_totals(request):

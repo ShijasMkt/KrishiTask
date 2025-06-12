@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import { getValidAccessToken } from "../../tools/tokenValidation";
+
 
 export default function AddField({ farm, onClose }) {
 	const [formData, setFormData] = useState({
@@ -34,12 +36,13 @@ export default function AddField({ farm, onClose }) {
 
 	const saveField = async (e) => {
 		e.preventDefault();
-
+		const token=await getValidAccessToken();
 		const body = JSON.stringify({ formData });
 		const res = await fetch("http://127.0.0.1:8000/api/add_field/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
 			},
 			body,
 		});
@@ -103,9 +106,9 @@ export default function AddField({ farm, onClose }) {
 								className="form-control"
 								value={formData.crop}
 								onChange={handleChange}
-                                required
+                                
 							>
-								<option value="" disabled>Select Crop</option>
+								<option value="">Select Crop</option>
 								{crops.map((crop) => (
 									<option key={crop.id} value={crop.id}>
 										{crop.name}

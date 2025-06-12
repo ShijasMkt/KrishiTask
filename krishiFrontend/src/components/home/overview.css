@@ -54,3 +54,9 @@
 .recharts-text{
     font-size: 10px;
 }
+
+.weather-card{
+	border: 0;
+	background-color: #c1e1ec;
+	padding: 10px 3px 10px 3px;
+}

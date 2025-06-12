@@ -4,7 +4,7 @@ import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import Swal from "sweetalert2";
-
+import { getValidAccessToken } from "../../tools/tokenValidation";
 import AddField from "./addField";
 import EditField from "./editField";
 import "./fields.css";
@@ -25,10 +25,12 @@ export default function FieldView() {
     }, []);
 
     const fetchFields = async () => {
+        const token=await getValidAccessToken();
         const res = await fetch("http://127.0.0.1:8000/api/fetch_fields/",{
             method:"POST",
             headers:{
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
             body:JSON.stringify({farmID:selectedFarm.id})
         });
@@ -39,10 +41,12 @@ export default function FieldView() {
     };
 
     const deleteField = async () => {
+        const token=await getValidAccessToken();
         const res = await fetch("http://127.0.0.1:8000/api/delete_field/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ fieldID: fieldToDelete.id }),
         });
@@ -126,8 +130,8 @@ export default function FieldView() {
                 <Column header="Sl No" body={(rowData, { rowIndex }) => rowIndex + 1} />
                 <Column field="name" header="Name" />
                 <Column field="area_in_acres" header="Area (acres)" />
-                <Column field="crop_name" header="Crop" />
-                <Column field="soil_type" header="Soil Type" />
+                <Column field="crop_name" header="Crop" body={(rowData) => rowData.crop_name || "Not Specified"}/>
+                <Column field="soil_type" header="Soil Type" body={(rowData) => rowData.soil_type || "Unknown"}/>
                 <Column header="Irrigated" align={"center"} body={(rowData)=>(rowData.is_irrigated==true?<i className="pi pi-check text-success"></i>:<i className="pi pi-times text-danger"></i>)}></Column>
                 <Column header="Actions" body={fieldActions} />
             </DataTable>

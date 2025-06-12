@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import "./crops.css";
+import { getValidAccessToken } from "../../tools/tokenValidation";
+
 
 export default function AddCrop({ onClose }) {
 	const [formData, setFormData] = useState({
 		name: "",
 		variety: "",
 		season: "",
-		avg_yield_per_acre: "",
+		avg_yield_per_acre: 0,
 		description: "",
 		image: null,
 	});
@@ -33,10 +35,13 @@ export default function AddCrop({ onClose }) {
 		for (const key in formData) {
 			body.append(key, formData[key]);
 		}
-        console.log(formData)
+		const token=await getValidAccessToken();
 		const res = await fetch("http://127.0.0.1:8000/api/add_crop/", {
 			method: "POST",
 			body,
+			headers:{
+				Authorization: `Bearer ${token}`,
+			}
 		});
 
 		if (res.ok) {
@@ -82,7 +87,6 @@ export default function AddCrop({ onClose }) {
 								type="text"
 								id="variety"
 								className="form-control"
-								required
 							/>
 						</div>
 					</div>
@@ -111,7 +115,6 @@ export default function AddCrop({ onClose }) {
 								type="number"
 								id="avg_yield_per_acre"
 								className="form-control"
-								required
 							/>
 						</div>
 					</div>

@@ -3,6 +3,10 @@
     margin: 0;
     padding: 0px;
     overflow-x: hidden;
+    background-image: url('src/assets/farm-background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .login-body .row{
@@ -10,10 +14,11 @@
 }
 
 .login-body .card{
-    background-color: white;
-    border-radius: 0px;
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
     border: 0px;
     padding: 24px;
+    background-color: transparent;
 }
 
 .btn-login{
@@ -42,4 +47,52 @@
     border-radius: 0px;
     font-size: 14px !important;
     padding: 5px 12px !important;
+}
+
+.input-sec .form-control:active{
+    outline: none;
+}
+
+
+.input-sec .form-control.error{
+    border: 1px solid red;
+}
+
+.input-sec .form-control.success{
+    border: 1px solid green;
+}
+
+
+
+.register-link{
+    color: white;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+
+.login-body .card {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.login-body .card.flipped {
+  transform: rotateY(360deg);
+}
+
+.login-body .card-body {
+  backface-visibility: hidden;
+}
+
+.login-body .card-body.register {
+  transform: rotateY(180deg);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+
+.password-check{
+    color: white;
 }

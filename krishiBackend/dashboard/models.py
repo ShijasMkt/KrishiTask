@@ -1,21 +1,32 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
 from django.contrib.auth.hashers import make_password
 
-# Create your models here.
+class UserManager(BaseUserManager):
+    def create_user(self, email, name, password=None):
+        if not email:
+            raise ValueError("Users must have an email address")
+        email = self.normalize_email(email)
+        user = self.model(email=email, name=name)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-class Users(models.Model):
+class Users(AbstractBaseUser):
     name=models.CharField(max_length=20)
-    password = models.CharField(max_length=128)  
+    email=models.EmailField(max_length=100,unique=True)
+    is_active=models.BooleanField(default=True)
+    
+    objects=UserManager()
 
-    def save(self, *args, **kwargs):
-        if not self.password.startswith('pbkdf2_'):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    
 
 class Farm(models.Model):
-
+    user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name='farms')
     name = models.CharField(max_length=100)
-    owner_name = models.CharField(max_length=100)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     location = models.CharField(max_length=255)
@@ -46,6 +57,15 @@ class Field(models.Model):
     is_irrigated = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Livestock(models.Model):
+    farm=models.ForeignKey(Farm,on_delete=models.CASCADE,related_name='livestocks')
+    tag=models.CharField(max_length=100)
+    species=models.CharField(max_length=100)
+    breed=models.CharField(max_length=100,null=True,blank=True)
+    gender=models.CharField(max_length=50,null=True,blank=True)
+    color=models.CharField(max_length=50,null=True,blank=True)
+        
 
 
 class Project(models.Model):

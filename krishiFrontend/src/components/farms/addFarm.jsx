@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import './farms.css';
 import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
+import { getValidAccessToken } from '../../tools/tokenValidation';
 
 export default function AddFarm({ onClose }) {
     const [formData, setFormData] = useState({
         name: '',
-        owner_name: '',
         contact_number: '',
         email: '',
         location: '',
@@ -31,13 +32,18 @@ export default function AddFarm({ onClose }) {
     const saveFarm = async (e) => {
         e.preventDefault();
         const body = new FormData();
+        
         for (const key in formData) {
             body.append(key, formData[key]);
         }
 
+        const token=await getValidAccessToken();
         const res = await fetch('http://127.0.0.1:8000/api/create_farm/', {
             method: 'POST',
             body,
+            headers:{
+                Authorization: `Bearer ${token}`,
+            },
         });
 
         if (res.ok) {
@@ -73,19 +79,7 @@ export default function AddFarm({ onClose }) {
                                 required
                             />
                         </div>
-                        <div className="col-6 form-group">
-                            <label htmlFor="owner_name" className="form-label mb-0">
-                                Owner Name
-                            </label>
-                            <input
-                                value={formData.owner_name}
-                                onChange={handleChange}
-                                type="text"
-                                id="owner_name"
-                                className="form-control"
-                                required
-                            />
-                        </div>
+                        
                     </div>
 
                     <div className="row pt-3">

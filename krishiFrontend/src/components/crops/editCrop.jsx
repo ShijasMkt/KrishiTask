@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./crops.css";
 import Swal from 'sweetalert2';
+import { getValidAccessToken } from "../../tools/tokenValidation";
+
 
 export default function EditCrop({ crop, onClose }) {
 	const [formData, setFormData] = useState({});
@@ -13,13 +15,17 @@ export default function EditCrop({ crop, onClose }) {
 
 	const editCrop = async (e) => {
 		e.preventDefault();
-		const body = JSON.stringify({ formData });
+		const body = new FormData();
+		for (const key in formData) {
+			body.append(key, formData[key]);
+		}
+		const token=await getValidAccessToken();
 		const res = await fetch("http://127.0.0.1:8000/api/edit_crop/", {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
 			body,
+			headers:{
+				Authorization: `Bearer ${token}`,
+			}
 		});
 		if (res.ok) {
 			Swal.fire({
@@ -74,7 +80,6 @@ export default function EditCrop({ crop, onClose }) {
 								type="text"
 								id="variety"
 								className="form-control"
-								required
 							/>
 						</div>
 					</div>
@@ -103,7 +108,7 @@ export default function EditCrop({ crop, onClose }) {
 								type="number"
 								id="avg_yield_per_acre"
 								className="form-control"
-								required
+								
 							/>
 						</div>
 					</div>

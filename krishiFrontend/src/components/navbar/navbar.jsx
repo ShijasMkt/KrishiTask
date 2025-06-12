@@ -33,6 +33,9 @@ export default function Navbar() {
             case '/projects/':
                 setPage('Projects')
                 break;
+            case '/livestocks/':
+                setPage('Livestocks')
+                break;    
             default:
                 break;
         }

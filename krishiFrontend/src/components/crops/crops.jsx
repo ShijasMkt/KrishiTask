@@ -4,7 +4,7 @@ import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import Swal from "sweetalert2";
-
+import { getValidAccessToken } from "../../tools/tokenValidation";
 import AddCrop from "./addCrop";
 import EditCrop from "./editCrop";
 import "./crops.css";
@@ -31,10 +31,12 @@ export default function Crops() {
 	};
 
 	const deleteCrop = async () => {
+		const token=await getValidAccessToken();
 		const res = await fetch("http://127.0.0.1:8000/api/delete_crop/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify({ cropID: cropToDelete.id }),
 		});
@@ -123,9 +125,9 @@ export default function Crops() {
 			</div>
 
 			<DataTable value={crops} className="w-100" showGridlines stripedRows>
-				<Column field="id" header="Crop ID" />
+				<Column field="id" header="Crop ID" body={(rowData)=>`#${rowData.id}`} />
 				<Column field="name" header="Name" />
-				<Column field="variety" header="Variety" />
+				<Column field="variety" header="Variety" body={(rowData) => rowData.variety || "Unknown"}/>
 				<Column field="season" header="Season" />
 				<Column field="avg_yield_per_acre" header="Avg Yield (acres)" />
 				<Column header="Actions" body={cropActions} />
@@ -191,7 +193,6 @@ export default function Crops() {
 														src={`http://127.0.0.1:8000${selectedCrop.image}`}
 														className="farmImg"
 														alt=""
-														height={"100%"}
 													/>
 												</>
 											) : (

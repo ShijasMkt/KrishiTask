@@ -1,6 +1,7 @@
 import React,{useState,useEffect} from "react";
 import "./fields.css";
 import { useNavigate } from "react-router-dom";
+import { getValidAccessToken } from "../../tools/tokenValidation";
 
 export default function Fields() {
 
@@ -12,10 +13,12 @@ export default function Fields() {
 	}, []);
 
     const fetchFarms = async () => {
+        const token=await getValidAccessToken();
 		const res = await fetch("http://127.0.0.1:8000/api/fetch_farms/", {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
 			},
 		});
 		if (res.ok) {
@@ -39,7 +42,7 @@ export default function Fields() {
                                 <h5>{farm.name}</h5>
                                 <div className="card-body">
                                     <span>
-                                        Owner Name : <span>{farm.owner_name}</span>
+                                        Area : <span>{farm.size_in_acres} acres</span>
                                     </span>
                                     <span>
                                         Place : <span>{farm.location}</span>

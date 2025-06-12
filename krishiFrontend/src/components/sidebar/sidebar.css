@@ -1,5 +1,5 @@
 .sidebar-body{
-    background-color: white;
+    background-color: #00321e;
     min-height: 100vh;
     height: 100%;
     padding: 10px;
@@ -31,6 +31,7 @@
     border-radius: 5px;
     transition: background-color 0.3s, color 0.3s;
     margin-top: 5px;
+    color: #fff;
 }
 
 .menu-item i {
@@ -40,6 +41,7 @@
 
 .menu-item:hover {
     background-color: #f0f0f0;
+    color: black;
 }
 
 .menu-item.active {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./fields.css";
 import Swal from 'sweetalert2';
+import { getValidAccessToken } from "../../tools/tokenValidation";
+
 
 export default function EditField({ field, onClose }) {
     const [formData, setFormData] = useState({});
@@ -26,12 +28,13 @@ export default function EditField({ field, onClose }) {
 
     const editField = async (e) => {
         e.preventDefault();
-        console.log(formData)
         const body = JSON.stringify({ formData });
+		const token=await getValidAccessToken();
         const res = await fetch("http://127.0.0.1:8000/api/edit_field/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
             },
             body,
         });
@@ -99,9 +102,9 @@ export default function EditField({ field, onClose }) {
 								className="form-control"
 								value={formData.crop}
 								onChange={handleChange}
-                                required
+                                
 							>
-								<option value="" disabled>Select Crop</option>
+								<option value="" >Select Crop</option>
 								{crops.map((crop) => (
 									<option key={crop.id} value={crop.id}>
 										{crop.name}

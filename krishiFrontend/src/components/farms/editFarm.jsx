@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./farms.css";
 import Swal from 'sweetalert2';
+import { getValidAccessToken } from "../../tools/tokenValidation";
 
 export default function EditFarm({ farm, onClose }) {
 	const [formData, setFormData] = useState({});
@@ -13,13 +14,19 @@ export default function EditFarm({ farm, onClose }) {
 
 	const editFarm = async (e) => {
 		e.preventDefault();
-		const body = JSON.stringify({ formData });
+		const body = new FormData();
+        
+        for (const key in formData) {
+            body.append(key, formData[key]);
+        }
+		const token=await getValidAccessToken();
 		const res = await fetch("http://127.0.0.1:8000/api/edit_farm/", {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
 			body,
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+			
 		});
 		if (res.ok) {
 			Swal.fire({
@@ -65,19 +72,7 @@ export default function EditFarm({ farm, onClose }) {
 										required
 									/>
 								</div>
-								<div className="col-6 form-group">
-									<label htmlFor="owner_name" className="form-label mb-0">
-										Owner Name
-									</label>
-									<input
-										value={formData.owner_name}
-										onChange={handleChange}
-										type="text"
-										id="owner_name"
-										className="form-control"
-										required
-									/>
-								</div>
+								
 							</div>
 
 							<div className="row pt-3">

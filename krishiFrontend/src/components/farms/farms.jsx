@@ -9,6 +9,8 @@ import AddFarm from "./addFarm";
 import EditFarm from "./editFarm";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import { getValidAccessToken } from "../../tools/tokenValidation";
+import { se } from "date-fns/locale";
 
 export default function Farms() {
 	useEffect(() => {
@@ -25,10 +27,12 @@ export default function Farms() {
 	const [deleteFarmDialog, setDeleteFarmDialog] = useState(false);
 
 	const fetchFarms = async () => {
+		const token=await getValidAccessToken();
 		const res = await fetch("http://127.0.0.1:8000/api/fetch_farms/", {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
 			},
 		});
 		if (res.ok) {
@@ -43,11 +47,13 @@ export default function Farms() {
 
 	const deleteFarm = async () => {
 		const farmID = farmToDelete.id;
+		const token=await getValidAccessToken();
 		const body = JSON.stringify({ farmID });
 		const res = await fetch("http://127.0.0.1:8000/api/delete_farm/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
 			},
 			body,
 		});
@@ -178,8 +184,7 @@ export default function Farms() {
 					header="Farm Name"
 					body={(rowData) => <span className="fw-bold">{rowData.name}</span>}
 				></Column>
-				<Column field="owner_name" header="Owner Name"></Column>
-				<Column field="location" header="Location"></Column>
+				<Column field="location" header="Location" ></Column>
 				<Column field="size_in_acres" header="Size(acres)"></Column>
                 <Column header="Fields" body={fieldsBodyTemplate} align={"center"}></Column>
 				<Column header="Action" body={actionBodyTemplate}></Column>
@@ -239,7 +244,7 @@ export default function Farms() {
 														src={`http://127.0.0.1:8000${selectedFarm.image}`}
 														className="farmImg"
 														alt=""
-														height={"100%"}
+														
 													/>
 												</>
 											) : (
@@ -254,13 +259,10 @@ export default function Farms() {
 											<h6 className="fw-bold">{selectedFarm.name}</h6>
 											<span>{selectedFarm.location}</span>
 											<span>{selectedFarm.size_in_acres} acres</span>
-										</div>
-										<div className="card p-3 mt-2">
-											<h6 className="fw-bold">Owner:</h6>
-											<span>{selectedFarm.owner_name}</span>
-											<span>{selectedFarm.contact_number}</span>
 											<span>{selectedFarm.email}</span>
+											<span>{selectedFarm.contact_number}</span>
 										</div>
+										
 									</div>
 									<div className="col-6 pt-3"></div>
 								</div>
